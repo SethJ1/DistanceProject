@@ -1,0 +1,31 @@
+#include "Particle.h"
+
+const int triggerPin = D2;
+const int echoPin = D3;
+
+void setup() {
+  pinMode(triggerPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+
+  Particle.connect();
+}
+
+void loop() {
+  // Trigger the distance measurement
+  digitalWrite(triggerPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(triggerPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(triggerPin, LOW);
+
+  // Read the echo pulse duration
+  unsigned long duration = pulseIn(echoPin, HIGH);
+
+  // Calculate distance in centimeters
+  float distance_cm = duration * 0.034 / 2;
+
+  // Publish distance data to the Particle Cloud
+  Particle.publish("distance", String(distance_cm));
+
+  delay(10000); // Adjust the delay as per your requirements
+}
