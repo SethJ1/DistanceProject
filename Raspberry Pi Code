@@ -1,0 +1,49 @@
+from flask import Flask, request
+import RPi.GPIO as GPIO
+import time
+
+app = Flask(__name__)
+
+GPIO.setmode(GPIO.BCM)
+LED_PIN = 4
+BUZZER_PIN = 18
+GPIO.setup(LED_PIN, GPIO.OUT)
+GPIO.setup(BUZZER_PIN, GPIO.OUT)
+GPIO.output(LED_PIN, GPIO.LOW)
+
+@app.route('/distance', methods=['POST'])
+def receive_data():
+    distance_data = request.get_json()
+    distance = float(request.json.get('distance'))
+    print("Received distance data:", distance)
+    
+    if distance is not None and distance < 100:
+        # Keep the LED and buzzer active
+        activate_led_and_buzzer()
+    else:
+        # Turn off the LED and buzzer
+        GPIO.output(LED_PIN, GPIO.LOW)
+        GPIO.output(BUZZER_PIN, GPIO.LOW)
+    
+    return 'OK'
+
+def activate_led_and_buzzer():
+    # Activate the LED and buzzer
+    while True:
+        distance = float(request.json.get('distance'))
+        if distance is not None and distance >= 100:
+            # Distance is greater than or equal to 100, break the loop
+            GPIO.output(LED_PIN, GPIO.LOW)
+            GPIO.output(BUZZER_PIN, GPIO.LOW)
+            break
+        
+        GPIO.output(LED_PIN, GPIO.HIGH)
+        GPIO.output(BUZZER_PIN, GPIO.HIGH)
+        time.sleep(0.5)
+        GPIO.output(LED_PIN, GPIO.LOW)
+        GPIO.output(BUZZER_PIN, GPIO.LOW)
+        time.sleep(0.5)
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
